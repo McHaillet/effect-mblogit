@@ -39,20 +39,21 @@ logit2p <- function(logit) 1/(1 + exp(-logit))
 
 p2logit <- function(p) log(p/(1 - p))
 
-Effect.mblogit <- function(mod, confidence.level=0.95){
+Effect.mblogit <- function(mod, focal.predictors, confidence.level=0.95){
     
     # get predictors/response names from model object and put the baseline last
     resp.names <- rownames(mod$D)
     resp.names <- c(resp.names[-1], resp.names[1])
-    pred.names <- mod$xlevels$state
+    pred.names <- mod$xlevels[[focal.predictors]]
     
     # get size of predictor and response
     n_pred <- length(pred.names)
     n_resp <- length(resp.names) - 1
     
     # prepare predictor grid
-    predictors <- expand.grid(state = pred.names)
-    X0 <- model.matrix(~ state, predictors)
+    predictors <- expand.grid(temp = pred.names)
+
+    X0 <- model.matrix(~ temp, predictors)
     
     B <- t(matrix((coef(mod)), n_resp, n_pred))
     # test
@@ -110,11 +111,10 @@ Effect.mblogit <- function(mod, confidence.level=0.95){
 
     result <- list(formula=formula(mod),
                  model.matrix=X0, model="mblogit",
-                 prob=P, logit=Logit)
+                 prob=P, logit=Logit, predictors=pred.names)
     result <- c(result, list(se.prob=SE.P, se.logit=SE.logit,
                                    lower.logit=Lower.logit, upper.logit=Upper.logit,
                                    lower.prob=Lower.P, upper.prob=Upper.P,
                                    confidence.level=confidence.level))    
     result
 }
-
